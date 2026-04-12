@@ -9,11 +9,12 @@ export default function HourlyForecast(props) {
     <section
       className="
         rounded-4xl
-        border border-white/30
-        bg-white/25
+        border border-white/30 dark:border-white/10
+        bg-white/25 dark:bg-white/10
         p-5
         backdrop-blur-xl
         shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+        transition-colors duration-300
       "
     >
       <div

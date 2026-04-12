@@ -6,14 +6,19 @@ export default function SearchBar() {
       className="
         flex items-center gap-3
         rounded-3xl
-        border border-white/40
-        bg-white/30
+        border border-white/40 dark:border-white/10
+        bg-white/30 dark:bg-white/10
         px-4 py-3
         backdrop-blur-xl
         shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+        transition-colors duration-300
       "
     >
-      <FaSearch className="text-lg text-gray-600" />
+      <FaSearch className="
+        text-lg text-gray-600 dark:text-white/70
+        transition-colors duration-300
+      " 
+      />
       <input 
         type="text" 
         placeholder="Search city..."
@@ -23,6 +28,10 @@ export default function SearchBar() {
           text-gray-800
           placeholder:text-gray-500
           outline-none
+
+          dark:text-white
+          dark:placeholder:text-white/50
+          transition-colors duration-300
         "
       />
       <button 
@@ -31,7 +40,11 @@ export default function SearchBar() {
           bg-white/40
           px-4 py-2
           text-sm font-medium text-gray-700
-          transition duration-300 hover:bg-white/60
+          transition-colors duration-300 hover:bg-white/60
+
+          dark:bg-white/10
+          dark:text-white
+          dark:hover:bg-white/20
         "
       >
         Search

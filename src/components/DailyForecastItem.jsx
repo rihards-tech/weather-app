@@ -8,14 +8,13 @@ export default function DailyForecastItem(props) {
       className="
         flex items-center justify-between
         rounded-3xl
-        border border-white/25
-        bg-white/20
+        border border-white/25 dark:border-white/10
+        bg-white/20 dark:bg-white/10
         px-4 py-4
-        text-gray-800
+        text-gray-800 dark:text-white
         backdrop-blur-lg
         shadow-[0_4px_20px_rgba(0,0,0,0.05)]
         transition-all duration-200
-        hover:bg-white/25
       "
     >
       <p className="min-w-27.5 text-base font-semibold">
@@ -27,7 +26,7 @@ export default function DailyForecastItem(props) {
       </div>
 
       <div className="min-w-22.5 text-right">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-white/60">
           {item.minTemp}°
         </span>
         <span className="ml-3 text-base font-semibold">
