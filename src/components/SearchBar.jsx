@@ -1,6 +1,12 @@
 import { FaSearch } from "react-icons/fa";
 
-export default function SearchBar() {
+export default function SearchBar(props) {
+  const {
+    searchValue,
+    onSearchChange,
+    onButtonClick,
+  } = props;
+
   return (
     <div 
       className="
@@ -22,6 +28,8 @@ export default function SearchBar() {
       <input 
         type="text" 
         placeholder="Search city..."
+        value={searchValue}
+        onChange={onSearchChange}
         className="
           w-full
           bg-transparent
@@ -35,6 +43,7 @@ export default function SearchBar() {
         "
       />
       <button 
+        onClick={onButtonClick}
         className="
           rounded-full
           bg-white/40
