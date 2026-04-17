@@ -11,6 +11,7 @@ import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock
 export default function Home() {
   const [city, setCity] = useState("");
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
+  const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
 
   function handleSearchChange(event) {
     setCity(event.target.value);
@@ -24,7 +25,10 @@ export default function Home() {
     if (!data) return;
 
     const weather = await getWeather(data.lat, data.lng);
+    const timezone = weather.timezone;
     const current = weather.current;
+    const hourly = weather.hourly;
+    console.log(hourly);
 
     const nextCurrentWeatherData = {
       city: data.name,
@@ -37,15 +41,35 @@ export default function Home() {
         weekday: "long",
         hour: "numeric",
         minute: "2-digit",
+        timeZone: timezone,
       }),
       icon: current.is_day ? "☀️" : "🌙",
     };
 
-    setCurrentWeatherData(nextCurrentWeatherData);
 
-    console.log(data);
-    console.log(weather);
-    console.log(current);
+    const nowTimestamp = Date.parse(current.time);
+    const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
+    const safeStartIndex = startIndex >= 0 ? startIndex : 0;
+
+    const nextHourlyForecastData = hourly.time.slice(startIndex, startIndex + 24).map((time, index) => {
+      const actualIndex = safeStartIndex + index;
+
+      return {
+        id: `${time}-${actualIndex}`,
+        time: new Date(time).toLocaleTimeString("en-US", {
+          hour: "numeric",
+        }),
+        temperature: Math.round(hourly.temperature_2m[actualIndex]),
+        icon: hourly.weather_code[actualIndex],
+      };
+    });
+
+    setCurrentWeatherData(nextCurrentWeatherData);
+    setHourlyForecastData(nextHourlyForecastData);
+
+    // console.log(data);
+    // console.log(weather);
+    // console.log(current);
   }
 
   return (
@@ -66,7 +90,7 @@ export default function Home() {
           onButtonClick={handleSearch}
         />
         <CurrentWeatherCard weather={currentWeatherData} />
-        <HourlyForecast items={hourlyForecast} />
+        <HourlyForecast items={hourlyForecastData} />
         <DailyForecast items={dailyForecast} />
       </div>
     </main>
