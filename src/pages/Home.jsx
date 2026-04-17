@@ -12,6 +12,7 @@ export default function Home() {
   const [city, setCity] = useState("");
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
   const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
+  const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
 
   function handleSearchChange(event) {
     setCity(event.target.value);
@@ -28,7 +29,7 @@ export default function Home() {
     const timezone = weather.timezone;
     const current = weather.current;
     const hourly = weather.hourly;
-    console.log(hourly);
+    const daily = weather.daily;
 
     const nextCurrentWeatherData = {
       city: data.name,
@@ -46,12 +47,13 @@ export default function Home() {
       icon: current.is_day ? "☀️" : "🌙",
     };
 
-
     const nowTimestamp = Date.parse(current.time);
     const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
     const safeStartIndex = startIndex >= 0 ? startIndex : 0;
 
-    const nextHourlyForecastData = hourly.time.slice(startIndex, startIndex + 24).map((time, index) => {
+    const nextHourlyForecastData = hourly
+    .time
+    .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
       const actualIndex = safeStartIndex + index;
 
       return {
@@ -64,12 +66,21 @@ export default function Home() {
       };
     });
 
+    const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
+      return {
+        id: `${date}-${index}`,
+        day: new Date(date).toLocaleDateString("en-US", {
+          weekday: "long",
+        }),
+        minTemp: Math.round(daily.temperature_2m_min[index]),
+        maxTemp: Math.round(daily.temperature_2m_max[index]),
+        icon: daily.weather_code[index],
+      };
+    });
+
     setCurrentWeatherData(nextCurrentWeatherData);
     setHourlyForecastData(nextHourlyForecastData);
-
-    // console.log(data);
-    // console.log(weather);
-    // console.log(current);
+    setDailyForecastData(nextDailyForecastData);
   }
 
   return (
@@ -91,7 +102,7 @@ export default function Home() {
         />
         <CurrentWeatherCard weather={currentWeatherData} />
         <HourlyForecast items={hourlyForecastData} />
-        <DailyForecast items={dailyForecast} />
+        <DailyForecast items={dailyForecastData} />
       </div>
     </main>
   );
