@@ -5,19 +5,47 @@ import HourlyForecast from "@/components/HourlyForecast";
 import DailyForecast from "@/components/DailyForecast";
 import ThemeToggle from '@/components/ThemeToggle';
 import { searchCity } from '@/api/locationApi';
+import { getWeather } from '@/api/weatherApi';
 import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock';
 
 export default function Home() {
   const [city, setCity] = useState("");
+  const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
 
   function handleSearchChange(event) {
     setCity(event.target.value);
   }
 
   async function handleSearch() {
-    const data = await searchCity(city);
+    const trimmedCity = city.trim();
+    if(!trimmedCity) return;
+
+    const data = await searchCity(trimmedCity);
+    if (!data) return;
+
+    const weather = await getWeather(data.lat, data.lng);
+    const current = weather.current;
+
+    const nextCurrentWeatherData = {
+      city: data.name,
+      temperature: Math.round(current.temperature_2m),
+      condition: `Weather code ${current.weather_code}`,
+      feelsLike: Math.round(current.apparent_temperature),
+      humidity: current.relative_humidity_2m,
+      windSpeed: Math.round(current.wind_speed_10m),
+      dateTime: new Date().toLocaleString("en-US", {
+        weekday: "long",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      icon: current.is_day ? "☀️" : "🌙",
+    };
+
+    setCurrentWeatherData(nextCurrentWeatherData);
+
     console.log(data);
-    console.log(city);
+    console.log(weather);
+    console.log(current);
   }
 
   return (
@@ -37,7 +65,7 @@ export default function Home() {
           onSearchChange={handleSearchChange}
           onButtonClick={handleSearch}
         />
-        <CurrentWeatherCard weather={currentWeather} />
+        <CurrentWeatherCard weather={currentWeatherData} />
         <HourlyForecast items={hourlyForecast} />
         <DailyForecast items={dailyForecast} />
       </div>
