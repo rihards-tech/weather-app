@@ -6,6 +6,7 @@ import DailyForecast from "@/components/DailyForecast";
 import ThemeToggle from '@/components/ThemeToggle';
 import { searchCity } from '@/api/locationApi';
 import { getWeather } from '@/api/weatherApi';
+import { getWeatherInfo } from "@/utils/weatherCodes";
 import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock';
 
 export default function Home() {
@@ -31,10 +32,13 @@ export default function Home() {
     const hourly = weather.hourly;
     const daily = weather.daily;
 
+    const weatherInfo = getWeatherInfo(current.weather_code);
+
+
     const nextCurrentWeatherData = {
       city: data.name,
       temperature: Math.round(current.temperature_2m),
-      condition: `Weather code ${current.weather_code}`,
+      condition: weatherInfo.label,
       feelsLike: Math.round(current.apparent_temperature),
       humidity: current.relative_humidity_2m,
       windSpeed: Math.round(current.wind_speed_10m),
@@ -44,7 +48,7 @@ export default function Home() {
         minute: "2-digit",
         timeZone: timezone,
       }),
-      icon: current.is_day ? "☀️" : "🌙",
+      icon: weatherInfo.icon,
     };
 
     const nowTimestamp = Date.parse(current.time);
@@ -55,6 +59,7 @@ export default function Home() {
     .time
     .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
       const actualIndex = safeStartIndex + index;
+      const info = getWeatherInfo(hourly.weather_code[actualIndex]);
 
       return {
         id: `${time}-${actualIndex}`,
@@ -62,11 +67,13 @@ export default function Home() {
           hour: "numeric",
         }),
         temperature: Math.round(hourly.temperature_2m[actualIndex]),
-        icon: hourly.weather_code[actualIndex],
+        icon: info.icon,
       };
     });
 
     const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
+      const info = getWeatherInfo(daily.weather_code[index]);
+
       return {
         id: `${date}-${index}`,
         day: new Date(date).toLocaleDateString("en-US", {
@@ -74,7 +81,7 @@ export default function Home() {
         }),
         minTemp: Math.round(daily.temperature_2m_min[index]),
         maxTemp: Math.round(daily.temperature_2m_max[index]),
-        icon: daily.weather_code[index],
+        icon: info.icon,
       };
     });
 
@@ -87,7 +94,7 @@ export default function Home() {
     <main className="
       min-h-screen
       bg-linear-to-br from-sky-300 via-blue-200 to-purple-300
-    dark:from-slate-900 dark:via-indigo-900 dark:to-violet-800
+      dark:from-slate-900 dark:via-indigo-900 dark:to-violet-800
       transition-colors duration-500
     "
     >
