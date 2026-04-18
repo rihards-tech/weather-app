@@ -2,20 +2,21 @@ import HourlyForecastItem from "@/components/HourlyForecastItem";
 
 export default function HourlyForecast(props) {
   const {
-    items
+    items,
   } = props;
 
   return (
     <section
-      className="
+      className={`
         rounded-4xl
         border border-white/30 dark:border-white/10
         bg-white/25 dark:bg-white/10
         p-5
         backdrop-blur-xl
         shadow-[0_8px_32px_rgba(0,0,0,0.08)]
-        transition-colors duration-300
-      "
+        transition-all duration-300
+        motion-safe:animate-[cardEnter_1150ms_cubic-bezier(0.22,1,0.36,1)_400ms_both]
+      `}
     >
       <div
         className="

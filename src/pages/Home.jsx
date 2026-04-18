@@ -22,6 +22,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const toastTimeoutRef = useRef(null);
 
+
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
   const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
   const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
@@ -33,6 +34,7 @@ export default function Home() {
       setErrorMessage("");
     }
   }
+
 
   async function handleSearch() {
     const trimmedCity = city.trim();
@@ -124,6 +126,7 @@ export default function Home() {
       setCurrentWeatherData(nextCurrentWeatherData);
       setHourlyForecastData(nextHourlyForecastData);
       setDailyForecastData(nextDailyForecastData);
+
       setStatus("success");
     }
     catch (error) {
