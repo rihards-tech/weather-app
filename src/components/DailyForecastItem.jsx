@@ -1,3 +1,5 @@
+import WeatherIcon from '@/components/WeatherIcon';
+
 export default function DailyForecastItem(props) {
   const {
     item,
@@ -21,8 +23,13 @@ export default function DailyForecastItem(props) {
         {item.day}
       </p>
 
-      <div className="text-3xl">
-        {item.icon}
+      <div className="flex justify-center">
+        <WeatherIcon
+          iconName={item.iconName}
+          animated={false}
+          style="fill"
+          className="h-12 w-12"
+        />
       </div>
 
       <div className="min-w-22.5 text-right">

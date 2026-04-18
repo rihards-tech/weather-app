@@ -32,7 +32,7 @@ export default function Home() {
     const hourly = weather.hourly;
     const daily = weather.daily;
 
-    const weatherInfo = getWeatherInfo(current.weather_code);
+    const weatherInfo = getWeatherInfo(current.weather_code, current.is_day);
 
 
     const nextCurrentWeatherData = {
@@ -48,7 +48,7 @@ export default function Home() {
         minute: "2-digit",
         timeZone: timezone,
       }),
-      icon: weatherInfo.icon,
+      iconName: weatherInfo.iconName,
     };
 
     const nowTimestamp = Date.parse(current.time);
@@ -59,7 +59,7 @@ export default function Home() {
     .time
     .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
       const actualIndex = safeStartIndex + index;
-      const info = getWeatherInfo(hourly.weather_code[actualIndex]);
+      const info = getWeatherInfo(hourly.weather_code[actualIndex], hourly.is_day[actualIndex]);
 
       return {
         id: `${time}-${actualIndex}`,
@@ -67,12 +67,12 @@ export default function Home() {
           hour: "numeric",
         }),
         temperature: Math.round(hourly.temperature_2m[actualIndex]),
-        icon: info.icon,
+        iconName: info.iconName,
       };
     });
 
     const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
-      const info = getWeatherInfo(daily.weather_code[index]);
+      const info = getWeatherInfo(daily.weather_code[index], true);
 
       return {
         id: `${date}-${index}`,
@@ -81,7 +81,7 @@ export default function Home() {
         }),
         minTemp: Math.round(daily.temperature_2m_min[index]),
         maxTemp: Math.round(daily.temperature_2m_max[index]),
-        icon: info.icon,
+        iconName: info.iconName,
       };
     });
 
@@ -93,8 +93,15 @@ export default function Home() {
   return (
     <main className="
       min-h-screen
-      bg-linear-to-br from-sky-300 via-blue-200 to-purple-300
-      dark:from-slate-900 dark:via-indigo-900 dark:to-violet-800
+      bg-linear-to-br
+      from-[rgb(120,180,220)]
+      via-[rgb(110,170,225)]
+      to-[rgb(110,150,230)]
+      
+      dark:from-slate-900
+      dark:via-indigo-900
+      dark:to-slate-800
+      
       transition-colors duration-500
     "
     >

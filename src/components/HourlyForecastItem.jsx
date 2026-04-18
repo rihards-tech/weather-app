@@ -1,3 +1,5 @@
+import WeatherIcon from '@/components/WeatherIcon';
+
 export default function HourlyForecastItem({ item }) {
   return (
     <article
@@ -18,8 +20,13 @@ export default function HourlyForecastItem({ item }) {
         {item.time}
       </p>
 
-      <div className="my-4 text-5xl">
-        {item.icon}
+      <div className="my-3 flex justify-center">
+        <WeatherIcon
+          iconName={item.iconName}
+          animated={false}
+          style="fill"
+          className="h-13 w-13"
+        />
       </div>
 
       <p className="text-3xl font-semibold text-gray-800 dark:text-white">

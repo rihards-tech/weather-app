@@ -1,3 +1,5 @@
+import WeatherIcon from '@/components/WeatherIcon';
+
 export default function CurrentWeatherCard(props) {
   const {
     weather,
@@ -39,7 +41,12 @@ export default function CurrentWeatherCard(props) {
         </div>
 
         <div className="flex min-w-40 flex-col items-center justify-center text-center text-gray-800 dark:text-white">
-          <div className="text-9xl">{weather.icon}</div>
+          <WeatherIcon
+            iconName={weather.iconName}
+            animated={true}
+            style="fill"
+            className="h-40 w-40"
+          />
           <p className="mt-4 text-2xl font-semibold dark:text-white">
             {weather.condition}
           </p>

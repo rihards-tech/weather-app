@@ -13,6 +13,7 @@ export async function getWeather(lat, lng) {
     hourly: [
       "temperature_2m",
       "weather_code",
+      "is_day",
     ].join(","),
     daily: [
       "weather_code",
