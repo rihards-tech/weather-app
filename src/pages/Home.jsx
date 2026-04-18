@@ -4,6 +4,7 @@ import CurrentWeatherCard from "@/components/CurrentWeatherCard";
 import HourlyForecast from "@/components/HourlyForecast";
 import DailyForecast from "@/components/DailyForecast";
 import ThemeToggle from '@/components/ThemeToggle';
+import Toast from "@/components/Toast";
 import { searchCity } from '@/api/locationApi';
 import { getWeather } from '@/api/weatherApi';
 import { getWeatherInfo } from "@/utils/weatherCodes";
@@ -11,10 +12,16 @@ import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock
 
 export default function Home() {
   const [city, setCity] = useState("");
+
   const [status, setStatus] = useState("idle");
   const [showLoading, setShowLoading] = useState(false);
   const loadingTimeoutRef = useRef(null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const toastTimeoutRef = useRef(null);
+
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
   const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
   const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
@@ -49,6 +56,7 @@ export default function Home() {
       const data = await searchCity(trimmedCity);
       if (!data) {
         setErrorMessage("City not found");
+        showErrorToast("City not found");
         setStatus("error");
         setShowLoading(false);
         return;
@@ -121,6 +129,7 @@ export default function Home() {
     catch (error) {
       console.error("Error: ", error);
       setErrorMessage("Something went wrong. Please try again.");
+      showErrorToast("Please try again.");
       setStatus("error");
     }
     finally {
@@ -129,6 +138,27 @@ export default function Home() {
       }
 
       setShowLoading(false);
+    }
+  }
+
+  function showErrorToast(message) {
+    setToastMessage(message);
+    setShowToast(true);
+
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setShowToast(false);
+    }, 4000);
+  }
+
+  function handleCloseToast() {
+    setShowToast(false);
+
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
     }
   }
 
@@ -193,11 +223,6 @@ export default function Home() {
             </p>
           </div>
         )}
-        {errorMessage && (
-          <p className="mt-4 text-sm font-medium text-red-600 dark:text-red-400">
-            {errorMessage}
-          </p>
-        )}
         {status === "success" && (
           <>
             <CurrentWeatherCard weather={currentWeatherData} />
@@ -206,6 +231,11 @@ export default function Home() {
           </>
         )}
       </div>
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={handleCloseToast}
+      />
     </main>
   );
 }
