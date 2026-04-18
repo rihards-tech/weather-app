@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import SearchBar from '@/components/SearchBar';
 import CurrentWeatherCard from "@/components/CurrentWeatherCard";
 import HourlyForecast from "@/components/HourlyForecast";
@@ -11,83 +11,125 @@ import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock
 
 export default function Home() {
   const [city, setCity] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [showLoading, setShowLoading] = useState(false);
+  const loadingTimeoutRef = useRef(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
   const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
   const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
 
   function handleSearchChange(event) {
     setCity(event.target.value);
+
+    if (errorMessage) {
+      setErrorMessage("");
+    }
   }
 
   async function handleSearch() {
     const trimmedCity = city.trim();
-    if(!trimmedCity) return;
+    if (!trimmedCity) return;
 
-    const data = await searchCity(trimmedCity);
-    if (!data) return;
+    setErrorMessage("");
+    setStatus("loading");
 
-    const weather = await getWeather(data.lat, data.lng);
-    const timezone = weather.timezone;
-    const current = weather.current;
-    const hourly = weather.hourly;
-    const daily = weather.daily;
+    setShowLoading(false);
+    setCity("");
 
-    const weatherInfo = getWeatherInfo(current.weather_code, current.is_day);
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+
+    loadingTimeoutRef.current = window.setTimeout(() => {
+      setShowLoading(true);
+    }, 350);
+
+    try {
+      const data = await searchCity(trimmedCity);
+      if (!data) {
+        setErrorMessage("City not found");
+        setStatus("error");
+        setShowLoading(false);
+        return;
+      }
+
+      const weather = await getWeather(data.lat, data.lng);
+      const timezone = weather.timezone;
+      const current = weather.current;
+      const hourly = weather.hourly;
+      const daily = weather.daily;
+
+      const weatherInfo = getWeatherInfo(current.weather_code, current.is_day);
 
 
-    const nextCurrentWeatherData = {
-      city: data.name,
-      temperature: Math.round(current.temperature_2m),
-      condition: weatherInfo.label,
-      feelsLike: Math.round(current.apparent_temperature),
-      humidity: current.relative_humidity_2m,
-      windSpeed: Math.round(current.wind_speed_10m),
-      dateTime: new Date().toLocaleString("en-US", {
-        weekday: "long",
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone: timezone,
-      }),
-      iconName: weatherInfo.iconName,
-    };
-
-    const nowTimestamp = Date.parse(current.time);
-    const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
-    const safeStartIndex = startIndex >= 0 ? startIndex : 0;
-
-    const nextHourlyForecastData = hourly
-    .time
-    .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
-      const actualIndex = safeStartIndex + index;
-      const info = getWeatherInfo(hourly.weather_code[actualIndex], hourly.is_day[actualIndex]);
-
-      return {
-        id: `${time}-${actualIndex}`,
-        time: new Date(time).toLocaleTimeString("en-US", {
-          hour: "numeric",
-        }),
-        temperature: Math.round(hourly.temperature_2m[actualIndex]),
-        iconName: info.iconName,
-      };
-    });
-
-    const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
-      const info = getWeatherInfo(daily.weather_code[index], true);
-
-      return {
-        id: `${date}-${index}`,
-        day: new Date(date).toLocaleDateString("en-US", {
+      const nextCurrentWeatherData = {
+        city: data.name,
+        temperature: Math.round(current.temperature_2m),
+        condition: weatherInfo.label,
+        feelsLike: Math.round(current.apparent_temperature),
+        humidity: current.relative_humidity_2m,
+        windSpeed: Math.round(current.wind_speed_10m),
+        dateTime: new Date().toLocaleString("en-US", {
           weekday: "long",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: timezone,
         }),
-        minTemp: Math.round(daily.temperature_2m_min[index]),
-        maxTemp: Math.round(daily.temperature_2m_max[index]),
-        iconName: info.iconName,
+        iconName: weatherInfo.iconName,
       };
-    });
 
-    setCurrentWeatherData(nextCurrentWeatherData);
-    setHourlyForecastData(nextHourlyForecastData);
-    setDailyForecastData(nextDailyForecastData);
+      const nowTimestamp = Date.parse(current.time);
+      const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
+      const safeStartIndex = startIndex >= 0 ? startIndex : 0;
+
+      const nextHourlyForecastData = hourly
+      .time
+      .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
+        const actualIndex = safeStartIndex + index;
+        const info = getWeatherInfo(hourly.weather_code[actualIndex], hourly.is_day[actualIndex]);
+
+        return {
+          id: `${time}-${actualIndex}`,
+          time: new Date(time).toLocaleTimeString("en-US", {
+            hour: "numeric",
+          }),
+          temperature: Math.round(hourly.temperature_2m[actualIndex]),
+          iconName: info.iconName,
+        };
+      });
+
+      const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
+        const info = getWeatherInfo(daily.weather_code[index], true);
+
+        return {
+          id: `${date}-${index}`,
+          day: new Date(date).toLocaleDateString("en-US", {
+            weekday: "long",
+          }),
+          minTemp: Math.round(daily.temperature_2m_min[index]),
+          maxTemp: Math.round(daily.temperature_2m_max[index]),
+          iconName: info.iconName,
+        };
+      });
+
+      setCurrentWeatherData(nextCurrentWeatherData);
+      setHourlyForecastData(nextHourlyForecastData);
+      setDailyForecastData(nextDailyForecastData);
+      setStatus("success");
+    }
+    catch (error) {
+      console.error("Error: ", error);
+      setErrorMessage("Something went wrong. Please try again.");
+      setStatus("error");
+    }
+    finally {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+
+      setShowLoading(false);
+    }
   }
 
   return (
@@ -113,10 +155,56 @@ export default function Home() {
           searchValue={city}
           onSearchChange={handleSearchChange}
           onButtonClick={handleSearch}
+          isLoading={status}
         />
-        <CurrentWeatherCard weather={currentWeatherData} />
-        <HourlyForecast items={hourlyForecastData} />
-        <DailyForecast items={dailyForecastData} />
+        {status === "loading" && showLoading && (
+          <div
+            className="
+              mt-8 rounded-4xl border border-white/30 dark:border-white/10
+              bg-white/20 dark:bg-white/10
+              p-8 text-center
+              backdrop-blur-xl
+              shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+            "
+          >
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
+              Loading weather...
+            </h2>
+            <p className="mt-3 text-gray-700 dark:text-white/70">
+              We’re getting the latest forecast for you.
+            </p>
+          </div>
+        )}
+        {status === "idle" && !errorMessage && (
+          <div
+            className="
+              mt-8 rounded-4xl border border-white/30 dark:border-white/10
+              bg-white/20 dark:bg-white/10
+              p-8 text-center
+              backdrop-blur-xl
+              shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+            "
+          >
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
+              Search for a city
+            </h2>
+            <p className="mt-3 text-gray-700 dark:text-white/70">
+              Enter a city name above to see the current weather and forecast.
+            </p>
+          </div>
+        )}
+        {errorMessage && (
+          <p className="mt-4 text-sm font-medium text-red-600 dark:text-red-400">
+            {errorMessage}
+          </p>
+        )}
+        {status === "success" && (
+          <>
+            <CurrentWeatherCard weather={currentWeatherData} />
+            <HourlyForecast items={hourlyForecastData} />
+            <DailyForecast items={dailyForecastData} />
+          </>
+        )}
       </div>
     </main>
   );

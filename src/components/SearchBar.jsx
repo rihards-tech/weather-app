@@ -5,6 +5,7 @@ export default function SearchBar(props) {
     searchValue,
     onSearchChange,
     onButtonClick,
+    isLoading,
   } = props;
 
   return (
@@ -28,8 +29,14 @@ export default function SearchBar(props) {
       <input 
         type="text" 
         placeholder="Search city..."
+        disabled={isLoading === "loading"}
         value={searchValue}
         onChange={onSearchChange}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && isLoading != "loading") {
+            onButtonClick();
+          }
+        }}
         className="
           w-full
           bg-transparent
@@ -44,6 +51,7 @@ export default function SearchBar(props) {
       />
       <button 
         onClick={onButtonClick}
+        disabled={isLoading === "loading" || !searchValue.trim()}
         className="
           rounded-full
           bg-white/40
@@ -56,7 +64,7 @@ export default function SearchBar(props) {
           dark:hover:bg-white/20
         "
       >
-        Search
+        {isLoading === "loading" ? "Loading..." : "Search"}
       </button>
     </div>
   );
