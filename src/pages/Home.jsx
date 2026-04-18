@@ -8,6 +8,7 @@ import Toast from "@/components/Toast";
 import { searchCity } from '@/api/locationApi';
 import { getWeather } from '@/api/weatherApi';
 import { getWeatherInfo } from "@/utils/weatherCodes";
+import { getCitySuggestions } from '@/api/locationApi';
 import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock';
 
 export default function Home() {
@@ -22,19 +23,43 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const toastTimeoutRef = useRef(null);
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef(null);
 
   const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
   const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
   const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
 
-  function handleSearchChange(event) {
-    setCity(event.target.value);
+  async function handleSearchChange(event) {
+    const value = event.target.value;
+    setCity(value);
+
+    if (value.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    setIsSuggestionsLoading(true);
+    
+    debounceRef.current = setTimeout(async () => {
+      const results = await getCitySuggestions(value);
+      
+      setSuggestions(results);
+      setShowSuggestions(true);
+      setIsSuggestionsLoading(false);
+    }, 300);
 
     if (errorMessage) {
       setErrorMessage("");
     }
   }
-
 
   async function handleSearch() {
     const trimmedCity = city.trim();
@@ -42,9 +67,9 @@ export default function Home() {
 
     setErrorMessage("");
     setStatus("loading");
+    setShowSuggestions(false);
 
     setShowLoading(false);
-    setCity("");
 
     if (loadingTimeoutRef.current) {
       clearTimeout(loadingTimeoutRef.current);
@@ -64,70 +89,7 @@ export default function Home() {
         return;
       }
 
-      const weather = await getWeather(data.lat, data.lng);
-      const timezone = weather.timezone;
-      const current = weather.current;
-      const hourly = weather.hourly;
-      const daily = weather.daily;
-
-      const weatherInfo = getWeatherInfo(current.weather_code, current.is_day);
-
-
-      const nextCurrentWeatherData = {
-        city: data.name,
-        temperature: Math.round(current.temperature_2m),
-        condition: weatherInfo.label,
-        feelsLike: Math.round(current.apparent_temperature),
-        humidity: current.relative_humidity_2m,
-        windSpeed: Math.round(current.wind_speed_10m),
-        dateTime: new Date().toLocaleString("en-US", {
-          weekday: "long",
-          hour: "numeric",
-          minute: "2-digit",
-          timeZone: timezone,
-        }),
-        iconName: weatherInfo.iconName,
-      };
-
-      const nowTimestamp = Date.parse(current.time);
-      const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
-      const safeStartIndex = startIndex >= 0 ? startIndex : 0;
-
-      const nextHourlyForecastData = hourly
-      .time
-      .slice(safeStartIndex, safeStartIndex + 24).map((time, index) => {
-        const actualIndex = safeStartIndex + index;
-        const info = getWeatherInfo(hourly.weather_code[actualIndex], hourly.is_day[actualIndex]);
-
-        return {
-          id: `${time}-${actualIndex}`,
-          time: new Date(time).toLocaleTimeString("en-US", {
-            hour: "numeric",
-          }),
-          temperature: Math.round(hourly.temperature_2m[actualIndex]),
-          iconName: info.iconName,
-        };
-      });
-
-      const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
-        const info = getWeatherInfo(daily.weather_code[index], true);
-
-        return {
-          id: `${date}-${index}`,
-          day: new Date(date).toLocaleDateString("en-US", {
-            weekday: "long",
-          }),
-          minTemp: Math.round(daily.temperature_2m_min[index]),
-          maxTemp: Math.round(daily.temperature_2m_max[index]),
-          iconName: info.iconName,
-        };
-      });
-
-      setCurrentWeatherData(nextCurrentWeatherData);
-      setHourlyForecastData(nextHourlyForecastData);
-      setDailyForecastData(nextDailyForecastData);
-
-      setStatus("success");
+      await fetchWeatherByLocation(data);
     }
     catch (error) {
       console.error("Error: ", error);
@@ -142,6 +104,72 @@ export default function Home() {
 
       setShowLoading(false);
     }
+  }
+
+  async function fetchWeatherByLocation(location) {
+    const weather = await getWeather(location.lat, location.lng);
+    const timezone = weather.timezone;
+    const current = weather.current;
+    const hourly = weather.hourly;
+    const daily = weather.daily;
+
+    const weatherInfo = getWeatherInfo(current.weather_code, current.is_day);
+
+    const nextCurrentWeatherData = {
+      city: location.name,
+      temperature: Math.round(current.temperature_2m),
+      condition: weatherInfo.label,
+      feelsLike: Math.round(current.apparent_temperature),
+      humidity: current.relative_humidity_2m,
+      windSpeed: Math.round(current.wind_speed_10m),
+      dateTime: new Date().toLocaleString("en-US", {
+        weekday: "long",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: timezone,
+      }),
+      iconName: weatherInfo.iconName,
+    };
+
+    const nowTimestamp = Date.parse(current.time);
+    const startIndex = hourly.time.findIndex((time) => Date.parse(time) >= nowTimestamp);
+    const safeStartIndex = startIndex >= 0 ? startIndex : 0;
+
+    const nextHourlyForecastData = hourly.time
+      .slice(safeStartIndex, safeStartIndex + 24)
+      .map((time, index) => {
+        const actualIndex = safeStartIndex + index;
+        const info = getWeatherInfo(hourly.weather_code[actualIndex], hourly.is_day[actualIndex]);
+
+        return {
+          id: `${time}-${actualIndex}`,
+          time: new Date(time).toLocaleTimeString("en-US", {
+            hour: "numeric",
+          }),
+          temperature: Math.round(hourly.temperature_2m[actualIndex]),
+          iconName: info.iconName,
+        };
+      });
+
+    const nextDailyForecastData = daily.time.slice(0, 7).map((date, index) => {
+      const info = getWeatherInfo(daily.weather_code[index], true);
+
+      return {
+        id: `${date}-${index}`,
+        day: new Date(date).toLocaleDateString("en-US", {
+          weekday: "long",
+        }),
+        minTemp: Math.round(daily.temperature_2m_min[index]),
+        maxTemp: Math.round(daily.temperature_2m_max[index]),
+        iconName: info.iconName,
+      };
+    });
+
+    setCurrentWeatherData(nextCurrentWeatherData);
+    setHourlyForecastData(nextHourlyForecastData);
+    setDailyForecastData(nextDailyForecastData);
+    setStatus("success");
+    setCity("");
   }
 
   function showErrorToast(message) {
@@ -163,6 +191,49 @@ export default function Home() {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
     }
+  }
+
+  async function onSuggestionsClick(suggestion) {
+    setCity(suggestion.name);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setErrorMessage("");
+    setStatus("loading");
+
+    setShowLoading(false);
+
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+
+    loadingTimeoutRef.current = window.setTimeout(() => {
+      setShowLoading(true);
+    }, 350);
+
+    try {
+      await fetchWeatherByLocation(suggestion);
+    }
+    catch (error) {
+      console.error("Error: ", error);
+      setErrorMessage("Something went wrong. Please try again.");
+      showErrorToast("Please try again.");
+      setStatus("error");
+    }
+    finally {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+
+      setShowLoading(false);
+    }
+  }
+
+  function handleCloseSuggestions() {
+    setShowSuggestions(false);
+  }
+
+  function handleOpenSuggestions() {
+    setShowSuggestions(true);
   }
 
   return (
@@ -189,6 +260,13 @@ export default function Home() {
           onSearchChange={handleSearchChange}
           onButtonClick={handleSearch}
           isLoading={status}
+
+          suggestions={suggestions}
+          showSuggestions={showSuggestions}
+          isSuggestionsLoading={isSuggestionsLoading}
+          onSuggestionsClick={onSuggestionsClick}
+          onCloseSuggestions={handleCloseSuggestions}
+          onOpenSuggestions={handleOpenSuggestions}
         />
         {status === "loading" && showLoading && (
           <div
