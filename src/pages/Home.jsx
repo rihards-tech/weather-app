@@ -9,7 +9,6 @@ import { searchCity } from '@/api/locationApi';
 import { getWeather } from '@/api/weatherApi';
 import { getWeatherInfo } from "@/utils/weatherCodes";
 import { getCitySuggestions } from '@/api/locationApi';
-import { currentWeather, hourlyForecast, dailyForecast } from '@/api/weatherMock';
 
 export default function Home() {
   const [city, setCity] = useState("");
@@ -28,9 +27,9 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef(null);
 
-  const [currentWeatherData, setCurrentWeatherData] = useState(currentWeather);
-  const [hourlyForecastData, setHourlyForecastData] = useState(hourlyForecast);
-  const [dailyForecastData, setDailyForecastData] = useState(dailyForecast);
+  const [currentWeatherData, setCurrentWeatherData] = useState(null);
+  const [hourlyForecastData, setHourlyForecastData] = useState([]);
+  const [dailyForecastData, setDailyForecastData] = useState([]);
 
   async function handleSearchChange(event) {
     const value = event.target.value;
