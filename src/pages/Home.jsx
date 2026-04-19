@@ -277,9 +277,12 @@ export default function Home() {
               shadow-[0_8px_32px_rgba(0,0,0,0.08)]
             "
           >
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white/90 dark:border-white/15 dark:border-t-white" />
+
+            <h2 className="mt-5 text-2xl font-semibold text-gray-800 dark:text-white">
               Loading weather...
             </h2>
+
             <p className="mt-3 text-gray-700 dark:text-white/70">
               We’re getting the latest forecast for you.
             </p>
