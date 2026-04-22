@@ -2,14 +2,14 @@
 
 A weather application built with React.
 
-## Features (planned)
-- Search city weather
+## Features
+- City search with autocomplete
 - Current weather
-- Hourly forecast
-- Daily forecast
-- Geolocation support
+- Hourly & daily forecast
+- Dark mode
 
 ## Tech stack
 - React
-- Vite
 - Tailwind
+- Vite
+- Open-Meteo API
