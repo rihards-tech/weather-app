@@ -39,8 +39,8 @@ const animatedFillIcons = {
 const staticFillIcons = {
   "clear-day": clearDayStatic,
   "partly-cloudy-day": partlyCloudyDayStatic,
-  "clear-night": clearNightAnimated,
-  "partly-cloudy-night": partlyCloudyNightAnimated,
+  "clear-night": clearNightStatic,
+  "partly-cloudy-night": partlyCloudyNightStatic,
   "overcast": overcastStatic,
   "fog": fogStatic,
   "drizzle": drizzleStatic,

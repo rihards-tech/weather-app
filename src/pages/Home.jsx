@@ -26,6 +26,7 @@ export default function Home() {
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef(null);
+  const suggestionsRequestIdRef = useRef(0);
 
   const [currentWeatherData, setCurrentWeatherData] = useState(null);
   const [hourlyForecastData, setHourlyForecastData] = useState([]);
@@ -35,29 +36,38 @@ export default function Home() {
     const value = event.target.value;
     setCity(value);
 
-    if (value.trim().length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
-    setIsSuggestionsLoading(true);
-    
-    debounceRef.current = setTimeout(async () => {
-      const results = await getCitySuggestions(value);
-      
-      setSuggestions(results);
-      setShowSuggestions(true);
-      setIsSuggestionsLoading(false);
-    }, 300);
-
     if (errorMessage) {
       setErrorMessage("");
     }
+
+    if (value.trim().length < 2) {
+      suggestionsRequestIdRef.current += 1;
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setIsSuggestionsLoading(false);
+      return;
+    }
+
+    const requestId = ++suggestionsRequestIdRef.current;
+    const query = value.trim();
+
+    setIsSuggestionsLoading(true);
+
+    debounceRef.current = window.setTimeout(async () => {
+      const results = await getCitySuggestions(query);
+
+      if (requestId !== suggestionsRequestIdRef.current) {
+        return;
+      }
+
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+      setIsSuggestionsLoading(false);
+    }, 300);
   }
 
   async function handleSearch() {
@@ -67,6 +77,14 @@ export default function Home() {
     setErrorMessage("");
     setStatus("loading");
     setShowSuggestions(false);
+
+    setSuggestions([]);
+    setIsSuggestionsLoading(false);
+    suggestionsRequestIdRef.current += 1;
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
     setShowLoading(false);
 
@@ -195,6 +213,14 @@ export default function Home() {
   async function onSuggestionsClick(suggestion) {
     setCity(suggestion.name);
     setShowSuggestions(false);
+
+    setIsSuggestionsLoading(false);
+    suggestionsRequestIdRef.current += 1;
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
     setSuggestions([]);
     setErrorMessage("");
     setStatus("loading");
