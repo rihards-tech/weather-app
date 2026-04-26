@@ -265,15 +265,7 @@ export default function Home() {
     <main className="
       min-h-screen min-h-[100dvh]
       overflow-x-clip
-      bg-linear-to-br
-      from-[rgb(120,180,220)]
-      via-[rgb(110,170,225)]
-      to-[rgb(110,150,230)]
-      
-      dark:from-slate-900
-      dark:via-indigo-900
-      dark:to-slate-800
-      
+      bg-transparent
       transition-colors duration-500
     "
     >

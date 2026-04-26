@@ -6,17 +6,46 @@ body {
   font-family: "Inter", sans-serif;
   min-height: 100%;
   margin: 0;
-  background: var(--app-bg);
+  background: transparent;
   overscroll-behavior-y: none;
 }
 
-body::before {
+body::before,
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: var(--app-bg);
+  transition: opacity 300ms ease;
+}
+
+body::before {
+  background: linear-gradient(
+    to bottom right,
+    rgb(120, 180, 220),
+    rgb(110, 170, 225),
+    rgb(110, 150, 230)
+  );
+  opacity: 1;
+}
+
+body::after {
+  background: linear-gradient(
+    to bottom right,
+    rgb(15, 23, 42),
+    rgb(49, 46, 129),
+    rgb(30, 41, 59)
+  );
+  opacity: 0;
+}
+
+html.dark body::before {
+  opacity: 0;
+}
+
+html.dark body::after {
+  opacity: 1;
 }
 
 #root {
@@ -36,7 +65,6 @@ body::before {
 
 html {
   min-height: 100%;
-  color-scheme: light;
 
   --app-bg: linear-gradient(
     to bottom right,
@@ -45,14 +73,13 @@ html {
     rgb(110, 150, 230)
   );
 
-  background: var(--app-bg);
+  background: rgb(110, 150, 230);
 
   scrollbar-width: thin;
   scrollbar-color: rgba(58, 58, 58, 0.42) transparent;
 }
 
 html.dark {
-  color-scheme: dark;
 
   --app-bg: linear-gradient(
     to bottom right,
@@ -61,7 +88,7 @@ html.dark {
     rgb(30, 41, 59)
   );
 
-  background: var(--app-bg);
+  background: rgb(15, 23, 42);
 
   scrollbar-color: rgba(200, 200, 200, 0.6) transparent;
 }
