@@ -4,6 +4,24 @@
 
 body {
   font-family: "Inter", sans-serif;
+  min-height: 100%;
+  margin: 0;
+  background: var(--app-bg);
+  overscroll-behavior-y: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--app-bg);
+}
+
+#root {
+  min-height: 100dvh;
+  background: transparent;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -17,11 +35,34 @@ body {
 
 
 html {
+  min-height: 100%;
+  color-scheme: light;
+
+  --app-bg: linear-gradient(
+    to bottom right,
+    rgb(120, 180, 220),
+    rgb(110, 170, 225),
+    rgb(110, 150, 230)
+  );
+
+  background: var(--app-bg);
+
   scrollbar-width: thin;
   scrollbar-color: rgba(58, 58, 58, 0.42) transparent;
 }
 
 html.dark {
+  color-scheme: dark;
+
+  --app-bg: linear-gradient(
+    to bottom right,
+    rgb(15, 23, 42),
+    rgb(49, 46, 129),
+    rgb(30, 41, 59)
+  );
+
+  background: var(--app-bg);
+
   scrollbar-color: rgba(200, 200, 200, 0.6) transparent;
 }
 

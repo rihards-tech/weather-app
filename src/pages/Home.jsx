@@ -263,7 +263,8 @@ export default function Home() {
 
   return (
     <main className="
-      min-h-screen
+      min-h-screen min-h-[100dvh]
+      overflow-x-clip
       bg-linear-to-br
       from-[rgb(120,180,220)]
       via-[rgb(110,170,225)]
